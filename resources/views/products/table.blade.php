@@ -4,11 +4,11 @@
             <thead>
             <tr>
                 <th>Nome</th>
-                <th>Descricao</th>
-                <th>Preco</th>
+                <th>Descrição</th>
+                <th>Preço</th>
                 <th>Quantidade</th>
-                <th>Category Id</th>
-                <th colspan="3">Action</th>
+                <th>Categoria</th>
+                <th colspan="3">Ação</th>
             </tr>
             </thead>
             <tbody>
@@ -18,8 +18,8 @@
                     <td>{{ $product->descricao }}</td>
                     <td>{{ $product->preco }}</td>
                     <td>{{ $product->quantidade }}</td>
-                    <td>{{ $product->category_id }}</td>
-                    <td  style="width: 120px">
+                    <td>{{ $product->category->nome }}</td>
+                    <td style="width: 120px">
                         {!! Form::open(['route' => ['products.destroy', $product->id], 'method' => 'delete']) !!}
                         <div class='btn-group'>
                             <a href="{{ route('products.show', [$product->id]) }}"

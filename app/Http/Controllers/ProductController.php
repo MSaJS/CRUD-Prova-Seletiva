@@ -4,30 +4,39 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateProductRequest;
 use App\Http\Requests\UpdateProductRequest;
-use App\Http\Controllers\AppBaseController;
+use App\Models\Product;
+use App\Repositories\CategoryRepository;
 use App\Repositories\ProductRepository;
 use Illuminate\Http\Request;
-use Flash;
+use Laracasts\Flash\Flash;
 
 class ProductController extends AppBaseController
 {
-    /** @var ProductRepository $productRepository*/
-    private $productRepository;
 
-    public function __construct(ProductRepository $productRepo)
-    {
-        $this->productRepository = $productRepo;
-    }
+    public function __construct(
+        private ProductRepository $productRepository,
+        private CategoryRepository $categoryRepository
+    ){}
 
     /**
      * Display a listing of the Product.
      */
     public function index(Request $request)
     {
+        $search = request('search');
         $products = $this->productRepository->paginate(10);
 
-        return view('products.index')
-            ->with('products', $products);
+        if($search) {
+
+            $products = Product::where([
+                ['nome', 'like', '%'.$search.'%']
+            ])->get();
+
+        } else {
+            $products = $this->productRepository->paginate(10);
+        }
+
+        return view('products.index', ['products' => $products, 'search' => $search]);
     }
 
     /**
@@ -35,7 +44,8 @@ class ProductController extends AppBaseController
      */
     public function create()
     {
-        return view('products.create');
+        $categories = $this->categoryRepository->all();
+        return view('products.create')->with('categories', $categories);
     }
 
     /**
@@ -47,7 +57,7 @@ class ProductController extends AppBaseController
 
         $product = $this->productRepository->create($input);
 
-        Flash::success('Product saved successfully.');
+        Flash::success('Produto adicionado com sucesso.');
 
         return redirect(route('products.index'));
     }
@@ -60,7 +70,7 @@ class ProductController extends AppBaseController
         $product = $this->productRepository->find($id);
 
         if (empty($product)) {
-            Flash::error('Product not found');
+            Flash::error('Produto não encontrado');
 
             return redirect(route('products.index'));
         }
@@ -74,14 +84,15 @@ class ProductController extends AppBaseController
     public function edit($id)
     {
         $product = $this->productRepository->find($id);
+        $categories = $this->categoryRepository->all();
 
         if (empty($product)) {
-            Flash::error('Product not found');
+            Flash::error('Produto não encontrado');
 
             return redirect(route('products.index'));
         }
 
-        return view('products.edit')->with('product', $product);
+        return view('products.edit')->with('product', $product)->with('categories', $categories);
     }
 
     /**
@@ -92,14 +103,14 @@ class ProductController extends AppBaseController
         $product = $this->productRepository->find($id);
 
         if (empty($product)) {
-            Flash::error('Product not found');
+            Flash::error('Produto não encontrado');
 
             return redirect(route('products.index'));
         }
 
         $product = $this->productRepository->update($request->all(), $id);
 
-        Flash::success('Product updated successfully.');
+        Flash::success('Produto atualizado com sucesso.');
 
         return redirect(route('products.index'));
     }
@@ -114,14 +125,14 @@ class ProductController extends AppBaseController
         $product = $this->productRepository->find($id);
 
         if (empty($product)) {
-            Flash::error('Product not found');
+            Flash::error('Produto não encontrado');
 
             return redirect(route('products.index'));
         }
 
         $this->productRepository->delete($id);
 
-        Flash::success('Product deleted successfully.');
+        Flash::success('Produto deletado com sucesso.');
 
         return redirect(route('products.index'));
     }
